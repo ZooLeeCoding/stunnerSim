@@ -15,7 +15,7 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
     private Random random;
 
     public P2PProtocol(String prefix) {
-        super(prefix);
+        super();
         this.stability = 0;
         this.connections = new Node[20];
         this.random = new Random();
@@ -33,13 +33,13 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
 
     public void nextCycle(Node node, int pid) {
         if (this.connections.length < 20) {
-            int linkableID = FastConfig.getLinkable(protocolID);
+            int linkableID = FastConfig.getLinkable(pid);
             Linkable linkable = (Linkable) node.getProtocol(linkableID);
             if (linkable.degree() > 0) {
                 Node peer = linkable.getNeighbor(CommonState.r.nextInt(linkable.degree()));
-                P2PProtocol neighbor = (P2PProtocol) peer.getProtocol(protocolID);
+                P2PProtocol neighbor = (P2PProtocol) peer.getProtocol(pid);
                 if (neighbor.getNumberOfConnection() < 20 && this.random.nextInt(100) < neighbor.stability) {
-                    ((Transport) node.getProtocol(FastConfig.getTransport(pid))).send(node, peer,
+                    ((Transport)node.getProtocol(FastConfig.getTransport(pid))).send(node, peer,
                             new FirebaseMessage(true, node), pid);
                     this.connections[this.connections.length] = peer;
                 }

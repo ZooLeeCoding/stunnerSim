@@ -9,12 +9,12 @@ control.shf Shuffle
 
 network.size DEVICES
  
-protocol.lnk IdleProtocol
+protocol.lnk peersim.core.IdleProtocol
 
 protocol.p2p stunner.P2PProtocol
 protocol.p2p.linkable lnk
  
-init.rnd WireKOut
+init.rnd peersim.dynamics.WireKOut
 init.rnd.protocol lnk
 init.rnd.k DEVICES
 
