@@ -96,16 +96,16 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
         return this.stability;
     }
 
-    public setChargerState(boolean isCharging) {
-        this.batteryLevel = isCharging;
+    public void setChargerState(boolean isCharging) {
+        this.isConnected = isCharging;
     }
 
     public void setBattery(int battery) {
-        this.battery = battery;
+        this.batteryLevel = battery;
     }
 
     public int getBattery() {
-        return this.battery;
+        return this.batteryLevel;
     }
 
     public int getNumberOfConnection() {

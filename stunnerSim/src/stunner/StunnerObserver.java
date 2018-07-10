@@ -29,7 +29,7 @@ public class StunnerObserver implements Control {
             minStability = (prot.getStability() < minStability) ? prot.getStability() : minStability;
         }
 
-        System.out.println("Time: " + time + " maximum degree: " + maxConnections + ", most stable node: " + maxStability);
+        System.out.println("Time: " + time + " maximum degree: " + maxConnections + ", most stable node: " + maxStability + ", least stable node: " + minStability);
 
         return false;
     }
