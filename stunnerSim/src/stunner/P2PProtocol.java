@@ -12,12 +12,17 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
     private int neighborLimit;
 
     private Node[] connections;
+    private boolean isConnected;
+    private int batteryLevel;
+
     private int stability;
 
     private Random random;
 
     public P2PProtocol(String prefix) {
         super();
+        this.isConnected = false;
+        this.batteryLevel = 0;
         this.neighborLimit = 60;
         this.stability = 0;
         this.connections = new Node[neighborLimit];
@@ -30,7 +35,7 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
         try {
             pp = (P2PProtocol) super.clone();
         } catch (CloneNotSupportedException e) {
-        } // never happens
+        }
         return pp;
     }
 
@@ -91,6 +96,18 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
         return this.stability;
     }
 
+    public setChargerState(boolean isCharging) {
+        this.batteryLevel = isCharging;
+    }
+
+    public void setBattery(int battery) {
+        this.battery = battery;
+    }
+
+    public int getBattery() {
+        return this.battery;
+    }
+
     public int getNumberOfConnection() {
         for (int i = 0; i < this.connections.length; i++) {
             if(this.connections[i] == null) {
@@ -112,4 +129,11 @@ class FirebaseMessage {
 		this.isConnecting = isConnecting;
 		this.sender = sender;
     }
+}
+
+class RandomWalkMessage {
+
+    int length;
+
+    public RandomWalkMessage() {}
 }

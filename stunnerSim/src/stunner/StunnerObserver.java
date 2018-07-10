@@ -18,6 +18,7 @@ public class StunnerObserver implements Control {
 
         int maxConnections = 0;
         int maxStability = 0;
+        int minStability = 100;
 
         long time = peersim.core.CommonState.getTime();
 
@@ -25,6 +26,7 @@ public class StunnerObserver implements Control {
             P2PProtocol prot = (P2PProtocol) Network.get(i).getProtocol(pid);
             maxConnections = (prot.getNumberOfConnection() > maxConnections) ? prot.getNumberOfConnection() : maxConnections;
             maxStability = (prot.getStability() > maxStability) ? prot.getStability() : maxStability;
+            minStability = (prot.getStability() < minStability) ? prot.getStability() : minStability;
         }
 
         System.out.println("Time: " + time + " maximum degree: " + maxConnections + ", most stable node: " + maxStability);
