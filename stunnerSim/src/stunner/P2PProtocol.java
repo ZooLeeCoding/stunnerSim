@@ -25,7 +25,7 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
         this.natType = -2;
         this.isConnected = false;
         this.batteryLevel = 0;
-        this.neighborLimit = 60;
+        this.neighborLimit = 20;
         this.connections = new Node[neighborLimit];
         this.random = new Random();
     }
@@ -56,9 +56,9 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
         }
 
         // did the node lose connection because of network error?
-        if (this.random.nextInt(100) > this.networkStability || this.batteryLevel == 1 && this.isConnected) {
+        if (this.random.nextInt(100) > this.networkStability || (this.batteryLevel == 1 && this.isConnected)) {
             for (int i = 0; i < this.connections.length; i++) {
-                if(this.connections[i]) {
+                if(this.connections[i] != null) {
                     ((Transport) node.getProtocol(FastConfig.getTransport(pid))).send(node, this.connections[i],
                         new FirebaseMessage(false, node), pid);
                 } else { break; }
@@ -118,7 +118,7 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
     }
 
     public void generateStability() {
-        this.networkStability = random.nextInt(50)+50;
+        this.networkStability = random.nextInt(50)+35;
     }
 
     public int getStability() {

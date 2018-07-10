@@ -19,6 +19,10 @@ public class StunnerObserver implements Control {
         int maxConnections = 0;
         int maxStability = 0;
         int minStability = 100;
+        int maxBattery = 0;
+        int minBattery = 100;
+        int disabled = 0;
+        int unconnected = 0;
 
         long time = peersim.core.CommonState.getTime();
 
@@ -27,9 +31,14 @@ public class StunnerObserver implements Control {
             maxConnections = (prot.getNumberOfConnection() > maxConnections) ? prot.getNumberOfConnection() : maxConnections;
             maxStability = (prot.getStability() > maxStability) ? prot.getStability() : maxStability;
             minStability = (prot.getStability() < minStability) ? prot.getStability() : minStability;
+            maxBattery = (prot.getBattery() > maxBattery) ? prot.getBattery() : maxBattery;
+            minBattery = (prot.getBattery() < minBattery) ? prot.getBattery() : minBattery;
+            if(prot.getBattery() == 0) disabled++;
+            if(prot.getNumberOfConnection() == 0) unconnected++;
         }
 
-        System.out.println("Time: " + time + " maximum degree: " + maxConnections + ", most stable node: " + maxStability + ", least stable node: " + minStability);
+        System.out.println("Time: " + time + " maximum degree: " + maxConnections + ", most stable node: " + maxStability + ", least stable node: " + minStability + ", max battery level: " + 
+            maxBattery + ", min battery level: " + minBattery + ", disabled: " + disabled + ", unconnected: " + unconnected);
 
         return false;
     }

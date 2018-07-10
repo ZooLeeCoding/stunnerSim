@@ -6,7 +6,7 @@ MINDELAY 0
 MAXDELAY 0
 
 random.seed 1234567890
-simulation.cycles 30
+simulation.cycles 100
 
 control.shf Shuffle
 

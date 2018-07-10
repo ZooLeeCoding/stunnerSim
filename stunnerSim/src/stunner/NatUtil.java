@@ -41,18 +41,18 @@ public class NatUtil {
         natChance.put("6 - 6", 10);
     }
 
-    public static canConnect(int a, int b) {
+    public static boolean canConnect(int a, int b) {
         String key;
         if (a < b) {
-            key = a + " - " b;
+            key = a + " - " + b;
         } else {
-            key = b + " - " a;
+            key = b + " - " + a;
         }
         
-        int chance = natChance.get(key);
-        if(chance) {
+        Object chance = natChance.get(key);
+        if(chance != null) {
             Random r = new Random();
-            return r.nextInt(101) <= chance;
+            return r.nextInt(101) <= (int)chance;
         } else {
             return false;
         }
