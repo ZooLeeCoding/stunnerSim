@@ -27,7 +27,7 @@ public class StunnerObserver implements Control {
             maxStability = (prot.getStability() > maxStability) ? prot.getStability() : maxStability;
         }
 
-        System.out.println(time + "maximum degree: " + maxConnections + ", most stable node: " + maxStability);
+        System.out.println("Time: " + time + " maximum degree: " + maxConnections + ", most stable node: " + maxStability);
 
         return false;
     }

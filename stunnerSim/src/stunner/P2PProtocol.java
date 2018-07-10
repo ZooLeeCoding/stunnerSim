@@ -9,6 +9,8 @@ import java.util.*;
 
 public class P2PProtocol implements CDProtocol, EDProtocol {
 
+    private int neighborLimit;
+
     private Node[] connections;
     private int stability;
 
@@ -16,8 +18,9 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
 
     public P2PProtocol(String prefix) {
         super();
+        this.neighborLimit = 60;
         this.stability = 0;
-        this.connections = new Node[20];
+        this.connections = new Node[neighborLimit];
         this.random = new Random();
     }
 
@@ -32,16 +35,16 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
     }
 
     public void nextCycle(Node node, int pid) {
-        if (this.connections.length < 20) {
+        if (this.getNumberOfConnection() < neighborLimit) {
             int linkableID = FastConfig.getLinkable(pid);
             Linkable linkable = (Linkable) node.getProtocol(linkableID);
             if (linkable.degree() > 0) {
                 Node peer = linkable.getNeighbor(CommonState.r.nextInt(linkable.degree()));
                 P2PProtocol neighbor = (P2PProtocol) peer.getProtocol(pid);
-                if (neighbor.getNumberOfConnection() < 20 && this.random.nextInt(100) < neighbor.stability) {
+                if (neighbor.getNumberOfConnection() < neighborLimit && !(this.isAlreadyNeighbor(peer)) && this.random.nextInt(100) < neighbor.stability) {
                     ((Transport)node.getProtocol(FastConfig.getTransport(pid))).send(node, peer,
                             new FirebaseMessage(true, node), pid);
-                    this.connections[this.connections.length] = peer;
+                    this.connections[this.getNumberOfConnection()] = peer;
                 }
             }
         }
@@ -50,14 +53,14 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
                 ((Transport) node.getProtocol(FastConfig.getTransport(pid))).send(node, this.connections[i],
                         new FirebaseMessage(false, node), pid);
             }
-            this.connections = new Node[20];
+            this.connections = new Node[neighborLimit];
         }
     }
 
     public void processEvent(Node node, int pid, Object event) {
         FirebaseMessage fbm = (FirebaseMessage)event;
         if(fbm.isConnecting) {
-            this.connections[this.connections.length] = fbm.sender;
+            this.connections[this.getNumberOfConnection()] = fbm.sender;
         } else {
             for(int i = 0; i < this.connections.length; i++) {
                 if(this.connections[i].getID() == fbm.sender.getID()) {
@@ -70,8 +73,18 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
         }
     }
 
+    public boolean isAlreadyNeighbor(Node n) {
+        for(int i = 0; i < this.connections.length; i++) {
+            if(this.connections[i] == null) break;
+            if(this.connections[i].getID() == n.getID()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void generateStability() {
-        this.stability = this.random.nextInt(50)+50;
+        this.stability = this.random.nextInt(100);
     }
 
     public int getStability() {
@@ -79,8 +92,14 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
     }
 
     public int getNumberOfConnection() {
+        for (int i = 0; i < this.connections.length; i++) {
+            if(this.connections[i] == null) {
+                return i;
+            }
+        }
         return this.connections.length;
     }
+
 }
 
 class FirebaseMessage {

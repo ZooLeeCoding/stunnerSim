@@ -1,6 +1,9 @@
 # PEERSIM STUNNER
 
 DEVICES 50
+DROP 0
+MINDELAY 0
+MAXDELAY 0
 
 random.seed 1234567890
 simulation.cycles 30
@@ -13,6 +16,11 @@ protocol.lnk peersim.core.IdleProtocol
 
 protocol.p2p stunner.P2PProtocol
 protocol.p2p.linkable lnk
+protocol.p2p.transport urt
+
+protocol.urt UniformRandomTransport
+protocol.urt.mindelay MINDELAY
+protocol.urt.maxdelay MAXDELAY
  
 init.rnd peersim.dynamics.WireKOut
 init.rnd.protocol lnk
