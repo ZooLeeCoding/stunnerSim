@@ -18,6 +18,8 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
 
     private int networkStability;
 
+    private RandomWalkMessage rw;
+
     private Random random;
 
     public P2PProtocol(String prefix) {
@@ -41,17 +43,42 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
     }
 
     public void nextCycle(Node node, int pid) {
-        if (this.getNumberOfConnection() < neighborLimit && this.batteryLevel > 0) {
-            int linkableID = FastConfig.getLinkable(pid);
-            Linkable linkable = (Linkable) node.getProtocol(linkableID);
-            if (linkable.degree() > 0) {
-                Node peer = linkable.getNeighbor(CommonState.r.nextInt(linkable.degree()));
-                P2PProtocol neighbor = (P2PProtocol) peer.getProtocol(pid);
-                if (neighbor.getNumberOfConnection() < neighborLimit && !(this.isAlreadyNeighbor(peer)) && NatUtil.canConnect(neighbor.getNat(), this.getNat())) {
-                    ((Transport)node.getProtocol(FastConfig.getTransport(pid))).send(node, peer,
-                            new FirebaseMessage(true, node), pid);
-                    this.connections[this.getNumberOfConnection()] = peer;
+        if (this.batteryLevel > 0) {
+            if(this.getNumberOfConnection() < neighborLimit) {
+                int linkableID = FastConfig.getLinkable(pid);
+                Linkable linkable = (Linkable) node.getProtocol(linkableID);
+                if (linkable.degree() > 0) {
+                    Node peer = linkable.getNeighbor(CommonState.r.nextInt(linkable.degree()));
+                    P2PProtocol neighbor = (P2PProtocol) peer.getProtocol(pid);
+                    if (neighbor.getNumberOfConnection() < neighborLimit && !(this.isAlreadyNeighbor(peer)) && NatUtil.canConnect(neighbor.getNat(), this.getNat())) {
+                        ((Transport)node.getProtocol(FastConfig.getTransport(pid))).send(node, peer,
+                                new FirebaseMessage(true, node), pid);
+                        this.connections[this.getNumberOfConnection()] = peer;
+                    }
                 }
+            }
+            if(this.hasRandomWalk()) {
+                if(this.getNumberOfConnection() > 0) {
+                    //System.out.println("Elek es van setam");
+                    int j = 0;
+                    Node chosen;
+                    do {
+                        chosen = this.connections[this.random.nextInt(this.getNumberOfConnection())];
+                        if(!this.getMessage().alreadyVisited(chosen)) {
+                            //System.out.println("probalok inditani");
+                            this.getMessage().pushNode(node);
+                            ((Transport)node.getProtocol(FastConfig.getTransport(pid))).send(node, chosen,
+                                this.getMessage(), pid);
+                            this.deleteMessage();
+                            break;
+                        }
+                        j++;
+                    } while(j < this.getNumberOfConnection()+1);
+                    if(j == this.getNumberOfConnection()+1) {
+                        this.getMessage().increaseTtl();
+                        if(this.getMessage().getTtl() == 0) this.deleteMessage();
+                    }
+                } 
             }
         }
 
@@ -78,6 +105,7 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
     }
 
     public void processEvent(Node node, int pid, Object event) {
+        //this.log(event.getClass() + " :: " + FirebaseMessage.class);
         if (event.getClass() == FirebaseMessage.class) {
             FirebaseMessage fbm = (FirebaseMessage) event;
             if (fbm.isConnecting) {
@@ -92,7 +120,16 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
                     }
                 }
             }
+        } else if(event.getClass() == RandomWalkMessage.class) {
+            RandomWalkMessage rmessage = (RandomWalkMessage) event;
+            rmessage.resetTtl();
+            rmessage.increaseLength();
+            this.rw = rmessage;
         }
+    }
+
+    public void log(String msg) {
+        System.out.println(msg);
     }
 
     public boolean isAlreadyNeighbor(Node n) {
@@ -103,6 +140,22 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
             }
         }
         return false;
+    }
+
+    public void initiateRandomWalk() {
+        this.rw = new RandomWalkMessage();
+    }
+
+    public RandomWalkMessage getMessage() {
+        return this.rw;
+    }
+
+    public void deleteMessage() {
+        this.rw = null;
+    }
+
+    public boolean hasRandomWalk() {
+        return this.rw != null;
     }
 
     public void setChargerState(boolean isCharging) {
@@ -127,6 +180,7 @@ public class P2PProtocol implements CDProtocol, EDProtocol {
 
     public void generateNat() {
         this.natType = random.nextInt(9)-2;
+        this.generateStability();
     }
 
     public int getNat() {
@@ -160,6 +214,49 @@ class FirebaseMessage {
 class RandomWalkMessage {
 
     int length;
+    int ttl;
+    Node[] visited;
 
-    public RandomWalkMessage() {}
+    public RandomWalkMessage() {
+        //System.out.println("init walk");
+        this.length = 0;
+        this.visited = new Node[3];
+        this.resetTtl();
+    }
+
+    public void pushNode(Node n) {
+        for(int i = 0; i < this.visited.length-1; i++) {
+            this.visited[i+1] = this.visited[i];
+        }
+        this.visited[0] = n;
+    }
+
+    public boolean alreadyVisited(Node n) {
+        for(int i = 0; i < this.visited.length; i++) {
+            if(this.visited[i] != null) {
+                if(this.visited[i].getID() == n.getID()) return true;
+            } else { break; }
+        }
+        return false;
+    }
+
+    public void increaseTtl() {
+        this.ttl--;
+    }
+
+    public void increaseLength() {
+        this.length++;
+    }
+
+    public int getLength() {
+        return this.length;
+    }
+
+    public int getTtl() {
+        return this.ttl;
+    }
+
+    public void resetTtl() {
+        this.ttl = 3;
+    }
 }
